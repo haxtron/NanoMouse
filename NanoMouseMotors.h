@@ -1,4 +1,4 @@
-#include <Arudino.h>
+#include <Arduino.h>
 #include <Servo.h>
 
 // define turn
@@ -6,43 +6,69 @@
 #define LEFT -1
 
 
-// declare servo objects
-Servo leftServo;
-Servo rightServo;
+// define class
+class NanoMouseMotors {
+  private: // cannot be accessed outside of the class
 
-const byte power = 250;
+    // declare servo objects
+    Servo leftServo;
+    Servo rightServo;
 
-// function for stopping vehicle
-void stop (int time = 500) // stop device for 500ms then exec next command
-{
-    leftServo.writeMicroseconds(1500);
-    rightServo.writeMicroseconds(1500);
-    delay(time);
-}
+    static const byte power = 100; /* static allows to store variable even after function was called second or more time
+   need to be when define class... */
 
-// function for moving forward
-void forward()
-{
-    leftServo.writeMicroseconds(1500+power);
-    rightServo.writeMicroseconds(1500-power);
-}
+  public: // can be accessed outside of the class
 
-// function for moving in time
-void forwardTime(unsigned int time)
-{
-    forward();
-    delay(time);
-    stop();
+    void attach(byte leftMotor, byte rightMotor) {
+      // attach servos to pin
+      leftServo.attach(leftMotor);
+      rightServo.attach(rightMotor);
+    }
 
-}
+    // function for moving forward
+    void forward()
+    {
+      leftServo.writeMicroseconds(1500 + power);
+      rightServo.writeMicroseconds(1500 - power);
+    }
+
+    // function for stopping vehicle
+    void stop (int time = 200) // stop device for 200ms then exec next command
+    {
+      leftServo.writeMicroseconds(1500);
+      rightServo.writeMicroseconds(1500);
+      delay(time);
+    }
+
+    // function for moving in time
+    void forwardTime(unsigned int time)
+    {
+      forward();
+      delay(time);
+      stop();
+
+    }
+
+    // function for right turn
+    void turn(int direction, int degrees)
+    {
+      leftServo.writeMicroseconds(1500 + power * direction);
+      rightServo.writeMicroseconds(1500 + power * direction);
+      // delay(time);
+      delay(round(4.5749 * degrees + 6.2313));
+      stop(); // will stop device for 200ms as defined in stop function
+    }
+
+    void polygon(unsigned int time, int sides)
+    {
+      for (int i = 0; i < sides; i++)
+      {
+        forwardTime(time);
+        turn(RIGHT, 360 / sides);
+      }
+
+    }
 
 
-// function for right turn
-void turn(int direction, int time)
-{
-    leftServo.writeMicroseconds(1500+power*direction);
-    rightServo.writeMicroseconds(1500+power*direction);
-    // delay(time);
-    delay(time);
-    stop(); // will stop device for 500ms as defined in stop function
-}
+
+};
